@@ -4,15 +4,18 @@ import requests
 from PIL import Image  
 from io import BytesIO  
 import base64  
-  
-# Constants for OpenAI  
-AZURE_OPENAI_API_KEY = "783973291a7c4a74a1120133309860c0"  
-AZURE_OPENAI_ENDPOINT = "https://theswedes.openai.azure.com/"  
-OPENAI_API_TYPE = "azure"  
-OPENAI_API_VERSION = "2024-05-01-preview"  
-AZURE_DEPLOYMENT_NAME = "GPT-4-Omni"  
-  
-IMAGE_GENERATION_URL = "https://afsimage.azurewebsites.net/api/httpTriggerts"  
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Access variables
+AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE")
+OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION")
+AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
+IMAGE_GENERATION_URL = os.getenv("IMAGE_GENERATION_URL")
   
 # Initialize session state variables  
 if 'messages' not in st.session_state:  
