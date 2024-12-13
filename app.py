@@ -106,16 +106,16 @@ def refine_explanation_with_feedback(explanation, feedback):
         return f"Error: {str(e)}"  
   
 def refine_prompt(selected_prompt):  
-    prompt = f"How would you like to alter this prompt: \"{selected_prompt}\"?"  
+    prompt = f"How would you like to enhance this prompt: \"{selected_prompt}\" while keeping its original essence?"  
     messages = [  
-        {"role": "system", "content": "You are a helpful AI assistant focused on refining prompts."},  
+        {"role": "system", "content": "You are a helpful AI assistant focused on enhancing prompts."},  
         {"role": "user", "content": prompt}  
     ]  
     try:  
         response = openai.ChatCompletion.create(  
             engine=AZURE_DEPLOYMENT_NAME,  
             messages=messages,  
-            max_tokens=500,  
+            max_tokens=150,  # Increased max_tokens to avoid cutting off  
             temperature=0.7  
         )  
         follow_up_question = response.choices[0].message['content'].strip()  
@@ -136,7 +136,7 @@ def generate_prompt_library(user_input):
         response = openai.ChatCompletion.create(  
             engine=AZURE_DEPLOYMENT_NAME,  
             messages=messages,  
-            max_tokens=500,  
+            max_tokens=750,  # Ensures completeness  
             temperature=0.8  
         )  
         suggestions = response.choices[0].message['content'].strip().split('\n')  
@@ -185,16 +185,16 @@ def display_prompt_library():
                     return  
   
 def finalize_prompt(conversation):  
-    prompt = (  
-        "Craft a concise and comprehensive image prompt using the specific details provided by the user in the conversation. "  
-        "Incorporate all relevant graphical elements discussed, without making assumptions or adding speculative details."  
-    )  
+    prompt = "Craft a concise and comprehensive image prompt using the specific details provided by the user in the conversation. "  
+    prompt += "Incorporate all relevant graphical elements discussed, such as colors, textures, shapes, lighting, depth, and style, without making assumptions or adding speculative details. "  
+  
+    # Collect user and assistant messages specifically  
     for turn in conversation:  
         if turn['role'] == 'user':  
             prompt += f"User: {turn['content']}. "  
         elif turn['role'] == 'assistant':  
             prompt += f"Assistant: {turn['content']}. "  
-          
+  
     messages = [  
         {"role": "system", "content": "You are a helpful AI assistant."},  
         {"role": "user", "content": prompt}  
@@ -203,7 +203,7 @@ def finalize_prompt(conversation):
         response = openai.ChatCompletion.create(  
             engine=AZURE_DEPLOYMENT_NAME,  
             messages=messages,  
-            max_tokens=500,  
+            max_tokens=750,  # Increased max_tokens to ensure completeness  
             temperature=0.7  
         )  
         final_prompt = response.choices[0].message['content'].strip()  
@@ -274,8 +274,11 @@ def chat_interface():
             st.markdown(message["content"])  
   
     if st.session_state.refined_explanation and not st.session_state.awaiting_followup_response:  
+        # Finalize prompt from conversation  
+        final_prompt = finalize_prompt(st.session_state.messages)  
+        st.write(f"**Final Prompt:** {final_prompt}")  
         if st.button("Generate Image"):  
-            image_url = generate_image(st.session_state.refined_explanation)  
+            image_url = generate_image(final_prompt)  
             if image_url and "Error" not in image_url:  
                 st.session_state.generated_image_url = image_url  
                 display_image_options(image_url, "Refined Explanation Image")  
