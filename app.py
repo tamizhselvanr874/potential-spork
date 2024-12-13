@@ -9,12 +9,11 @@ import os
 
 load_dotenv()
 
-# Access variables with fallback
-AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY", "default_key")
-AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "default_endpoint")
-OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE", "default_type")
-OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION", "default_version")
-AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "default_deployment")
+# Set OpenAI API configuration
+openai.api_key = AZURE_OPENAI_API_KEY
+openai.api_type = OPENAI_API_TYPE
+openai.api_base = AZURE_OPENAI_ENDPOINT
+openai.api_version = OPENAI_API_VERSION
 IMAGE_GENERATION_URL = os.getenv("IMAGE_GENERATION_URL", "default_url")
   
 # Initialize session state variables  
