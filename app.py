@@ -5,17 +5,17 @@ from PIL import Image
 from io import BytesIO  
 import base64  
 from dotenv import load_dotenv
+import os
 
-# Load environment variables from .env file
 load_dotenv()
 
-# Access variables
-AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE")
-OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION")
-AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
-IMAGE_GENERATION_URL = os.getenv("IMAGE_GENERATION_URL")
+# Access variables with fallback
+AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY", "default_key")
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "default_endpoint")
+OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE", "default_type")
+OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION", "default_version")
+AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "default_deployment")
+IMAGE_GENERATION_URL = os.getenv("IMAGE_GENERATION_URL", "default_url")
   
 # Initialize session state variables  
 if 'messages' not in st.session_state:  
