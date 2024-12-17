@@ -18,10 +18,10 @@ IMAGE_GENERATION_URL = os.getenv("IMAGE_GENERATION_URL", "default_url")
   
 # AzureOpenAI Client Setup  
 class AzureOpenAI:  
-    def __init__(self, azure_endpoint, api_key, api_version): 
+    def __init__(self, azure_endpoint, api_key, api_version):  
         self.azure_endpoint = azure_endpoint  
         self.api_key = api_key  
-        self.api_version = api_version
+        self.api_version = api_version  
   
     def chat_completion(self, model, messages, temperature, max_tokens):  
         url = f"{self.azure_endpoint}/openai/deployments/{model}/chat/completions?api-version={self.api_version}"  
@@ -115,7 +115,8 @@ def get_image_explanation(base64_image):
         )  
         response.raise_for_status()  
         result = response.json()  
-        return result["choices"][0]["message"]["content"]  
+        explanation = result["choices"][0]["message"]["content"]  
+        return explanation  
     except requests.exceptions.HTTPError as http_err:  
         logging.error(f"HTTP error occurred: {http_err}")  
     except Exception as e:  
@@ -134,29 +135,16 @@ def call_azure_openai(messages, max_tokens, temperature):
     except Exception as e:  
         return f"Error: {str(e)}"  
   
-def generate_dynamic_questions(user_input, conversation_history):  
-    prompt = f"""  
-    We are working with the initial concept: "{user_input}".  
-    Given the conversation so far: "{conversation_history}", generate a follow-up question or suggestion that explores one of the following aspects: colors, textures, shapes, lighting, depth, or style.   
-    The question should be engaging and encourage the user to think creatively about their concept.  
-    """  
-    messages = [  
-        {"role": "system", "content": "You are a creative assistant who generates insightful questions to refine image prompts."},  
-        {"role": "user", "content": prompt}  
-    ]  
-    response_content = call_azure_openai(messages, 750, 0.8)  
-    return response_content.strip()  
-  
 def finalize_prompt(conversation):  
     prompt = "Craft a concise and comprehensive image prompt using the specific details provided by the user in the conversation. "  
     prompt += "Incorporate all relevant graphical elements discussed, such as colors, textures, shapes, lighting, depth, and style, without making assumptions or adding speculative details. "  
-  
+    prompt += "Ensure the prompt is clear, structured, and accurately reflects the user's inputs. "  
+    prompt += "End by asking: 'Are you okay with the prompt? Are there any things that need to be adjusted?'"  
     for turn in conversation:  
         if turn['role'] == 'user':  
             prompt += f"User: {turn['content']}. "  
         elif turn['role'] == 'assistant':  
             prompt += f"Assistant: {turn['content']}. "  
-  
     messages = [  
         {"role": "system", "content": "You are a helpful AI assistant."},  
         {"role": "user", "content": prompt}  
@@ -210,14 +198,20 @@ def display_prompt_library():
   
 def chat_interface():  
     image_file = st.sidebar.file_uploader("Upload an image for explanation and refinement:", type=["png", "jpg", "jpeg"])  
-    if image_file is not None:  
-        handle_image_input(image_file)  
-  
     user_input = st.chat_input("Your message:")  
   
-    if user_input:  
+    if image_file:  
+        handle_image_input(image_file)  
+        if user_input:  
+            st.session_state.messages.append({"role": "user", "content": user_input})  
+            # Directly finalize prompt after image explanation and user input  
+            st.session_state.final_prompt = finalize_prompt(st.session_state.messages)  
+            st.session_state.messages.append({"role": "assistant", "content": f"*Final Prompt:* {st.session_state.final_prompt}"})  
+  
+    elif user_input:  
         st.session_state.messages.append({"role": "user", "content": user_input})  
   
+        # Existing logic with dynamic questions  
         if st.session_state.current_question_index < 6:  # Ask 6 questions  
             context = ' '.join([msg['content'] for msg in st.session_state.messages])  
             dynamic_question = generate_dynamic_questions(user_input, context)  
@@ -241,4 +235,19 @@ def chat_interface():
         else:  
             st.write("Failed to generate image.")  
   
-chat_interface()
+def generate_dynamic_questions(user_input, conversation_history):  
+    prompt = f"""  
+    We are working with the initial concept: "{user_input}".  
+    Given the conversation so far: "{conversation_history}", generate a follow-up question or suggestion that explores one of the following aspects: colors, textures, shapes, lighting, depth, or style.  
+    The question should be engaging, concise and encourage the user to think creatively about their concept.  
+    Additionally, provide a short recommendation to inspire the user further.  
+    """  
+    messages = [  
+        {"role": "system", "content": "You are a creative assistant who generates insightful questions to refine image prompts, along with concise recommendations."},  
+        {"role": "user", "content": prompt}  
+    ]  
+    response_content = call_azure_openai(messages, 750, 0.8)  
+    question, recommendation = response_content.split("Recommendation:", 1)  
+    return f"{question.strip()}Recommendation:{recommendation.strip()}"  
+  
+chat_interface()  
