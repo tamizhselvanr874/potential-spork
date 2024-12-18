@@ -351,7 +351,7 @@ def generate_image(prompt):
 
 def display_image_options(image_url, image_caption):
     if image_url:
-        st.sidebar.image(image_url, caption=image_caption, use_column_width=True)
+        st.sidebar.image(image_url, caption=image_caption, use_container_width=True)
         image_data = requests.get(image_url).content
         st.sidebar.download_button(
             label=f"Download {image_caption}",
