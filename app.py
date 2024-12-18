@@ -59,8 +59,6 @@ client = AzureOpenAI(
     api_version=api_version,
 )
 
-IMAGE_GENERATION_URL = "https://afsimage.azurewebsites.net/api/httpTriggerts"
-
 # Initialize session state variables
 if "messages" not in st.session_state:
     st.session_state.messages = []
