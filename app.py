@@ -9,11 +9,12 @@ import time
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# Azure OpenAI Configuration
-azure_endpoint = "https://theswedes.openai.azure.com/"
-api_key = "783973291a7c4a74a1120133309860c0"
-api_version = "2024-02-01"
-model = "GPT-4o-mini"
+# Set OpenAI API configuration
+openai.api_key = AZURE_OPENAI_API_KEY
+openai.api_type = OPENAI_API_TYPE
+openai.api_base = AZURE_OPENAI_ENDPOINT
+openai.api_version = OPENAI_API_VERSION
+IMAGE_GENERATION_URL = os.getenv("IMAGE_GENERATION_URL", "default_url")
 
 # AzureOpenAI Client Setup
 class AzureOpenAI:
